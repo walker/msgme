@@ -1,0 +1,19 @@
+{
+  "name": "msgme",
+  "description": "Module for accessing the MsgMe service",
+  "version": "0.0.1",
+  "author": "Walker Hamilton <walker@revolutionmessaging.com>",
+  "contributors": [ 
+    { "name": "Walker Hamilton", "email": "walker@revolutionmessaging.com" }
+  ],
+  "dependencies": {
+    "jstoxml": ">= 1.5.2 < 2.0.0",
+  },
+  "devDependencies": {
+    "coffee-script": ">= 0.0.1",
+  },
+  "keywords": ["api", "sms", "ivr"],
+  "repository": "git://github.com/walker/msgme",
+  "main": "index",
+  "engines": { "node": ">= 0.4.10 < 0.5.0" }
+}
