@@ -1,4 +1,10 @@
-Right now, the require is complicated. Here's a coffeescript version of what it looks like:
+If you have non-expiring tokens:
+```
+require('msgme')([token], null, 'https://api.revolutionmsg.com/')
+```
+
+
+Right now, the require is complicated if your account only has expiring tokens. Here's a coffeescript version of what it looks like:
 
 ```
 msgme = null
