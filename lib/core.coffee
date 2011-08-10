@@ -48,30 +48,32 @@ module.exports = (token, url, vers) ->
 		if (parsedUrl.query == undefined)
 			parsedUrl.query = {}
 		
-		path = parsedUrl.pathname
+		pathstr = parsedUrl.pathname
 		
 		if(parsedUrl.query != undefined)
-			path = path + "?" + qs.stringify(parsedUrl.query)
+			pathstr = pathstr + "?" + qs.stringify(parsedUrl.query)
 		
-		request = http.request({
+		request = http.request(
+			{
 				"host" : parsedUrl.hostname,
 				"port" : parsedUrl.port,
-				"path" : path,
+				"path" : pathstr,
 				"method" : "POST",
-				"headers" : {
+				"headers" :
 					"Content-Length": data.length
-				}
 			},
 			(res) ->
 				res.setEncoding('utf8')
-				res.on("data", (chunk) ->
-					result += chunk
+				res.on("data",
+					(chunk) ->
+						result += chunk
 				)
-				res.on("end", () ->
-					# result = result
-					callback(null, result, res.statusCode)
+				res.on("end",
+					() -> # result = result
+						callback(null, result, res.statusCode)
 				)
 		)
+		
 		request.on("error", (err) ->
 			callback(err)
 		)
@@ -106,12 +108,12 @@ module.exports = (token, url, vers) ->
 		if (parsedUrl.query == undefined)
 			parsedUrl.query = {}
 		
-		path = parsedUrl.pathname + "?" + qs.stringify(parsedUrl.query)
+		pathstr = parsedUrl.pathname + "?" + qs.stringify(parsedUrl.query)
 		
 		request = http.request({
 				"host" : parsedUrl.hostname,
 				"port" : parsedUrl.port,
-				"path" : path,
+				"path" : pathstr,
 				"method" : "GET",
 				"headers" : {
 					"Content-Length": 0
