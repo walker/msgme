@@ -16,7 +16,7 @@ exports = module.exports = (token, url, ver) ->
 	# @param {String} msidn 10-digit mobile number
 	# @return {Array} An array with objects for each subscription. Array will be empty if no subscriptions found for msidn
 	######
-	get_keywords = (account_id, shortcode, callback, verOverride) ->
+	get = (account_id, shortcode, callback, verOverride) ->
 		version = verOverride || null
 		params = {
 			'accountId': account_id
@@ -59,5 +59,5 @@ exports = module.exports = (token, url, ver) ->
 	
 	return {
 		version: ver || core.vers['keywords'],
-		'get_keywords': get_keywords,
+		get_keywords: get
 	}

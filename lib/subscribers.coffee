@@ -69,7 +69,7 @@ exports = module.exports = (token, url, ver) ->
 	# @param {String} verOverride Optional API version override
 	# @return {String} An object with status, status_code, and subscriber_id
 	######
-	add_subscriber = (msidn, keyword_id, shortcode, terms, addtl, callback, passthrough, verOverride) ->
+	add = (msidn, keyword_id, shortcode, terms, addtl, callback, passthrough, verOverride) ->
 		version = verOverride || null
 		if(addtl && typeof addtl == 'object')
 			fields = addtl
@@ -142,7 +142,7 @@ exports = module.exports = (token, url, ver) ->
 	# @param {String} verOverride Override the API version being called
 	# @return {Object} An object with an array called {Array} 
 	######
-	get_subscriber = (msidn, keyword_id, callback, verOverride) ->
+	get = (msidn, keyword_id, callback, verOverride) ->
 		version = verOverride || null
 		params = {
 			'msidn': msidn
@@ -195,7 +195,7 @@ exports = module.exports = (token, url, ver) ->
 	# @param {String} the shortcode the keyword ID is associated with
 	# @return {Object} An object with an array called {Array} 
 	######
-	update_subscriber = (msidn, subscriber_id, keyword_id, shortcode, addtl, callback, passthrough, verOverride) ->
+	update = (msidn, subscriber_id, keyword_id, shortcode, addtl, callback, passthrough, verOverride) ->
 		version = verOverride || null
 		if(addtl && typeof addtl == 'object')
 			fields = addtl
@@ -255,16 +255,60 @@ exports = module.exports = (token, url, ver) ->
 	# @param {String} the shortcode the keyword ID is associated with
 	# @return {Object} An object with an array called {Array} 
 	######
-	unsubscribe_subscriber = (msidn, keyword_id, shortcode, callback, verOverride) ->
+	unsubscribe = (msidn, keyword_id, shortcode, callback, verOverride) ->
 		version = verOverride || null
 		
-		core.callApi('subscribers', 'unsubscribe_subscriber', params, null, callback, version)
+		doc = new libxmljs.Document((n) ->
+			n.node('apiRequest', {token: token}, (n) ->
+				n.node('unsubscribeSubscriber', {stopService: "false"}, (n) ->
+					n.node('subscriber', {msidn: msidn})
+					n.node('keywords', (n) ->
+						n.node('keyword', {'keywordId': keyword_id, 'shortcode': shortcode}, '')
+					)
+				)
+			)
+		)
+		xml_payload = doc.toString()
+		core.callApi(
+			'subscribers',
+			'unsubscribe_subscriber',
+			null,
+			xml_payload,
+			(err, data, status) ->
+				console.log(data)
+				xmlDoc = libxmljs.parseXmlString(data)
+				# status - not currently set properly
+				# xmlDoc.root().attr('status').value()
+				# xmlDoc.root().attr('statusCode').value()
+				if(xmlDoc.root().attr('statusCode').value()=='200')
+					subscriber = xmlDoc.get('//subscriber')
+					if(typeof subscriber == 'object')
+						returned = {'msidn': msidn, 'subscriber_id': subscriber.attr('subscriberId').value(), 'unsubscribe_date': subscriber.attr('unsubscribeDate').value(), 'keywords': []}
+						keyword_list = xmlDoc.find('//keyword')
+						# TODO: Non-blocking?
+						if typeof keyword_list == 'object' && typeof keyword_list.size != 'undefined'
+							i = 0
+							keyword_list.forEach((keyword) ->
+								returned.keywords[i] = 
+									keyword_id: keyword.attr('keywordId').value()
+									shortcode: keyword.attr('shortcode').value()
+								i++
+							)
+							callback(null, returned, 200)
+						else
+							callback({'code':'410', 'msg':'Gone', 'reason':'User was not subscribed to keyword or has previously unsubscribed.'})
+					else
+						callback({'code':'500', 'msg':'Unknown Server Error'})
+				else
+					callback({'code':xmlDoc.root().attr('statusCode').value(), 'msg':xmlDoc.root().attr('status').value(), 'reason': xmlDoc.get('//reason').text()})
+			, version
+		)
 	
 	return {
 		version: ver || core.vers['subscribers'],
 		list_subscriptions: list_subscriptions,
-		add_subscriber: add_subscriber,
-		get_subscriber: get_subscriber,
-		update_subscriber: update_subscriber,
-		unsubscribe_subscriber: unsubscribe_subscriber
+		add_subscriber: add,
+		get_subscriber: get,
+		update_subscriber: update,
+		unsubscribe_subscriber: unsubscribe
 	}
