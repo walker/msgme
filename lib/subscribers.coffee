@@ -136,16 +136,55 @@ exports = module.exports = (token, url, ver) ->
 	# Retrieve a subscriber's information
 	#
 	# @param {String} msidn 10-digit mobile number
-	# @param {String} the keyword ID of the subscribeable keyword "If a keyword ID is included then metadata associated with the subscriber for that keyword will be returned." - from msgme API docs.
+	# @param {String} keyword_id The keyword ID of the subscribeable keyword "If a keyword ID is included then metadata associated with the subscriber for that keyword will be returned." - from msgme API docs.
+	# @param {Function} callback The callback function for handling returned data or err
+	# @param {String} verOverride Override the API version being called
 	# @return {Object} An object with an array called {Array} 
 	######
-	get_subscriber = (msidn, keywordId, callback, verOverride) ->
+	get_subscriber = (msidn, keyword_id, callback, verOverride) ->
 		version = verOverride || null
 		params = {
 			'msidn': msidn
+			'keywordId': keyword_id
 		}
 		
-		core.callApi('subscribers', 'get_subscriber', params, null, callback, version)
+		core.callApi(
+			'subscribers',
+			'get_subscriber',
+			params,
+			null,
+			(err, data, status) ->
+				console.log(data)
+				xmlDoc = libxmljs.parseXmlString(data)
+				# status - not currently set properly
+				# xmlDoc.root().attr('status').value()
+				# xmlDoc.root().attr('statusCode').value()
+				if(xmlDoc.root().attr('statusCode').value()=='200')
+					subscriber = xmlDoc.get('//subscriber')
+					returned = {'msidn': msidn, 'subscriber_id': subscriber.attr('subscriberId').value(), 'created': subscriber.attr('created').value(), 'fields': {}}
+					
+					field_list = xmlDoc.find('//field')
+					values_list = xmlDoc.find('//values')
+					value_list = xmlDoc.find('//value')
+					# TODO: This is an ungodly mess. Why was this not easier?!
+					if typeof field_list == 'object'
+						i = 0
+						j = 0
+						field_list.forEach((field) ->
+							if(values_list[j].child() != null)
+								if(typeof value_list[i] == 'object')
+									returned.fields[field.attr('name').value()] = value_list[i].text()
+								i++
+							else
+								returned.fields[field.attr('name').value()] = ''
+							j++
+						)
+					callback(null, returned, 200)
+				else
+					callback({'code':xmlDoc.root().attr('statusCode').value(), 'msg':xmlDoc.root().attr('status').value(), 'reason': xmlDoc.get('//reason').text()})
+			,
+			version
+		)
 	
 	
 	######
