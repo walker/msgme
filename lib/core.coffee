@@ -13,14 +13,14 @@ qs = require('querystring')
 jstoxml = require('jstoxml')
 i = require('util').inspect
 
-module.exports = (token, url, vers) ->
+module.exports = (token, url, ver) ->
 
 	######
 	# Versioning of each module in the MsgMe API
 	# Override by passing a versions object.
 	######
 	
-	default_api_url = 'http://api.msgme.com'
+	default_api_url = 'http://api.msgme.com/'
 	
 	defaultVers = 
 		authenticate: 1
@@ -69,7 +69,9 @@ module.exports = (token, url, vers) ->
 						result += chunk
 				)
 				res.on("end",
-					() -> # result = result
+					() ->
+						result = result
+						# console.log(result)
 						callback(null, result, res.statusCode)
 				)
 		)
@@ -81,28 +83,12 @@ module.exports = (token, url, vers) ->
 		request.end()
 		
 	######
-	# Union utility
-	# Thanks TJ!
-	######
-	# union = (a, b) ->
-	# 	if (a && b)
-	# 		tokens = Object.tokens(b)
-	# 		len = tokens.length
-	# 		token
-	# 		
-	# 		for token in tokens
-	# 			if (!a.hasOwnProperty(token))
-	# 				a[token] = b[token];
-	# 	return a;
-	
-	######
 	# Standard get
 	#
 	# @param {String} url API URL for the endpoint you are calling + params
 	######
 	get = (url, callback) ->
 		parsedUrl = urlParser.parse(url, true)
-		request
 		result = ""
 		
 		if (parsedUrl.query == undefined)
@@ -123,11 +109,11 @@ module.exports = (token, url, vers) ->
 				res.on("data", (chunk) ->
 					result += chunk
 				)
-			,
-			res.on("end", () ->
-				result = result
-				callback(null, result, res.statusCode)
-			)
+				res.on("end", () ->
+					result = result
+					# console.log(result)
+					callback(null, result, res.statusCode)
+				)
 		)
 		
 		request.on("error", (err) ->
@@ -137,11 +123,39 @@ module.exports = (token, url, vers) ->
 		request.end()
 	
 	######
+	# Union utility
+	# Thanks TJ!
+	######
+	# union = (a, b) ->
+	# 	if (a && b)
+	# 		tokens = Object.tokens(b)
+	# 		len = tokens.length
+	# 		token
+	# 		
+	# 		for token in tokens
+	# 			if (!a.hasOwnProperty(token))
+	# 				a[token] = b[token]
+	# 	return a
+
+	######
+	# Process Array Utility 
+	######
+	process_array = (items, process) ->
+		todo = items.concat()
+		
+		setTimeout(() ->
+			process(todo.shift)
+			if(todo.length > 0)
+				setTimeout(arguments.callee, 25)
+		, 25)
+	
+	######
 	# Expose public
 	######
 	return {
 		vers: vers,
-		post: post
+		post: post,
+		process_array: process_array,
 		get: get,
 		######
 		# Call API
@@ -154,24 +168,33 @@ module.exports = (token, url, vers) ->
 		# @return {Object} Bandcamp response
 		######
 		callApi: (module, method, params, payload, callback, ver) ->
+			if(typeof callback isnt 'function')
+				callback = (err, data, status) ->
+					console.log('No callback was set for '+module+'.'+'method')
 			if (!module || !method)
-				new Error('msgme.callAPI: Module and Method are required.');
-				return;
+				new Error('msgme.callAPI: Module and Method are required.')
+				return
 				
 			if(_is('get', module, method))
+				if !params
+					params =  {}
 				params.token = token
 			else
 				params = null
 			
 			version = if ver then ver else vers[module]
+			
 			baseUrl = api_url
 			parsedParams = qs.stringify(params).replace(/\%2c/ig, ',')
 			v = 'v'+version.toString()
 			fullUrl = baseUrl + path.join(v, module, method)
 			
 			if(_is('get', module, method) && typeof token == 'string')
-				get(fullUrl + '?' + parsedParams + '&token=' + token, callback);
+				console.log('GET: '+fullUrl + '?' + parsedParams)
+				get(fullUrl + '?' + parsedParams + '&token=' + token, callback)
 			else
+				console.log('POST: '+fullUrl)
+				# console.log(payload)
 				post(fullUrl, payload, callback)
 	}
 
@@ -180,17 +203,16 @@ _is = (type, module, method) ->
 		switch module
 			when 'authenticate'
 				switch method
-					when 'get_accounts_ids'
+					when 'get_account_ids'
 						return true
 					else
 						return false
-				break
 			when 'subscribers'
 				switch method
 					when 'list_subscriptions', 'get_subscriber'
 						return true
 					else
-						return false;
+						return false
 			when 'subscriptions'
 				switch method
 					when 'get_custom_fields', 'get_subscribers_list', 'get_subscribers_count'
@@ -199,23 +221,23 @@ _is = (type, module, method) ->
 						return false
 			when 'keywords'
 				switch method
-					when 'get_new_keywords', 'tokenword_available', 'get_keywords'
-						return true;
+					when 'get_new_keywords', 'keyword_available', 'get_keywords'
+						return true
 					else
-						return false;
+						return false
 			when 'ivr'
 				switch method
 					when 'get_inbound_vmails', 'get_outbound_vmails', 'delete_inbound_vmails'
-						return true;
+						return true
 					else
-						return false;
+						return false
 			when 'messaging'
 				switch method
 					when 'get_delivery_receipts', 'get_message_activity', 'get_message_status', 'get_mo_message', 'get_mt_message'
-						return true;
+						return true
 					else
-						return false;
+						return false
 			else
-				return false;
+				return false
 	else if(type=='post')
 		return false
