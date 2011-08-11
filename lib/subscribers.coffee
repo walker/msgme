@@ -81,6 +81,7 @@ exports = module.exports = (token, url, ver) ->
 		else
 			terms = 'false'
 		
+		libxmljs.setTagCompression = 1
 		doc = new libxmljs.Document((n) ->
 			n.node('apiRequest', {token: token}, (n) ->
 				n.node('addSubscriber', (n) ->
@@ -91,7 +92,7 @@ exports = module.exports = (token, url, ver) ->
 									fields.forEach((field) ->
 										n.node('field', {'name': field.name}, (n) ->
 											n.node('fieldValues', (n) ->
-												n.node('fieldValue', {'value': field.name}, '')
+												n.node('fieldValue', {'value': field.value}, '')
 											)
 										)
 									)
@@ -154,7 +155,6 @@ exports = module.exports = (token, url, ver) ->
 			params,
 			null,
 			(err, data, status) ->
-				console.log(data)
 				xmlDoc = libxmljs.parseXmlString(data)
 				# status - not currently set properly
 				# xmlDoc.root().attr('status').value()
@@ -195,10 +195,57 @@ exports = module.exports = (token, url, ver) ->
 	# @param {String} the shortcode the keyword ID is associated with
 	# @return {Object} An object with an array called {Array} 
 	######
-	update_subscriber = (msidn, keyword_id, shortcode, callback, verOverride) ->
+	update_subscriber = (msidn, subscriber_id, keyword_id, shortcode, addtl, callback, passthrough, verOverride) ->
 		version = verOverride || null
+		if(addtl && typeof addtl == 'object')
+			fields = addtl
+		else
+			fields = []
 		
-		core.callApi('subscribers', 'unsubscribe_subscriber', params, null, callback, version)
+		doc = new libxmljs.Document((n) ->
+			n.node('apiRequest', {token: token}, (n) ->
+				n.node('updateSubscriber', (n) ->
+					n.node('subscriber', {msidn: msidn, subscriberId: subscriber_id}, (n) ->
+						n.node('keyword', {'keywordId': keyword_id, 'shortcode': shortcode}, (n) ->
+							if(fields.length>0)
+								n.node('fields', (n) ->
+									fields.forEach((field) ->
+										if(field.update_method != 'overwrite' && field.update_method != 'append' && field.update_method != 'remove')
+											field.update_method = 'overwrite'
+										n.node('field', {'name': field.name, 'updateMethod': field.update_method}, (n) ->
+											n.node('fieldValues', (n) ->
+												n.node('fieldValue', {'value': field.value}, '')
+											)
+										)
+									)
+								)
+						)
+					)
+				)
+			)
+		)
+		xml_payload = doc.toString()
+		core.callApi(
+			'subscribers',
+			'update_subscriber',
+			null,
+			xml_payload,
+			(err, data, status) ->
+				xmlDoc = libxmljs.parseXmlString(data)
+				# status - not currently set properly
+				# xmlDoc.root().attr('status').value()
+				# xmlDoc.root().attr('statusCode').value()
+				if(xmlDoc.root().attr('statusCode').value()=='200')
+					subscriber = xmlDoc.get('//subscriber')
+					if(typeof subscriber == 'object')
+						returned = {'msidn': msidn, 'subscriber_id': subscriber.attr('subscriberId').value(), 'modified': subscriber.attr('modified').value()}
+						callback(null, returned, 200)
+					else
+						callback({'code':xmlDoc.root().attr('statusCode').value(), 'msg':xmlDoc.root().attr('status').value(), 'reason': xmlDoc.get('//reason').text()})
+				else
+					callback({'code':xmlDoc.root().attr('statusCode').value(), 'msg':xmlDoc.root().attr('status').value(), 'reason': xmlDoc.get('//reason').text()})
+			, version
+		)
 	
 	######
 	# Retrieve a subscriber's information
