@@ -20,7 +20,9 @@ exports = module.exports = (token, non_standard_url, vers) ->
 		return {
 			'token': token,
 			'url': url,
-			'get_token': (token, main_callback, url) ->
+			'get_token': (main_callback) ->
+				token = token
+				url = url
 				if(typeof token == 'object' && token.acctname && token.api_key)
 					auth = require('./authenticate')(token, url, vers)
 					# get expiring token
