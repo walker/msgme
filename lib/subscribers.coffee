@@ -3,12 +3,10 @@
 ######
 
 exports = module.exports = (token, url, ver) ->
-
 	######
 	# Module dependencies
 	######
 	core = require('./core')(token, url, ver)
-	jstoxml = require('jstoxml')
 	libxmljs = require('libxmljs')
 	
 	######
@@ -71,7 +69,7 @@ exports = module.exports = (token, url, ver) ->
 	######
 	add = (msidn, keyword_id, shortcode, terms, addtl, callback, passthrough, verOverride) ->
 		version = verOverride || null
-		if(addtl && typeof addtl == 'object')
+		if(addtl && Object.prototype.toString.call(addtl) == '[object Array]')
 			fields = addtl
 		else
 			fields = []
@@ -171,6 +169,7 @@ exports = module.exports = (token, url, ver) ->
 						i = 0
 						j = 0
 						field_list.forEach((field) ->
+							# try field.find('value') here
 							if(values_list[j].child() != null)
 								if(typeof value_list[i] == 'object')
 									returned.fields[field.attr('name').value()] = value_list[i].text()
@@ -275,7 +274,6 @@ exports = module.exports = (token, url, ver) ->
 			null,
 			xml_payload,
 			(err, data, status) ->
-				console.log(data)
 				xmlDoc = libxmljs.parseXmlString(data)
 				# status - not currently set properly
 				# xmlDoc.root().attr('status').value()

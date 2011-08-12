@@ -3,7 +3,6 @@
 ######
 
 exports = module.exports = (token, url, ver) ->
-	
 	######
 	# Module dependencies
 	######

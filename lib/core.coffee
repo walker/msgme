@@ -14,7 +14,6 @@ jstoxml = require('jstoxml')
 i = require('util').inspect
 
 module.exports = (token, url, ver) ->
-
 	######
 	# Versioning of each module in the MsgMe API
 	# Override by passing a versions object.
