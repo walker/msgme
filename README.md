@@ -1,7 +1,7 @@
 If you have non-expiring tokens (I thought these existed, but now I can't verify that):
 
 ```
-msgme = require('msgme')([token], [api_url], [api_version])
+msgme = require('msgme')(token, [api_url, [api_version]])
 ```
 
 
@@ -10,7 +10,7 @@ Right now, the require is complicated for expiring tokens. (CoffeeScript)
 Here's the require for the beginning of the app:
 
 ```
-msg_me = require('msgme')({acctname: '[acct_name_here]', api_key:'[api_key_here]'}, [nonstandard_url], [api_version])
+msg_me = require('msgme')({acctname: 'acct_name_here', api_key:'api_key_here'}, [nonstandard_url, [api_version]])
 ```
 
 The non-standard API URL would be for "Enterprise" users only wherein you have a custom API pointed at your msgme API account. It will be something like api.my_domain.com
