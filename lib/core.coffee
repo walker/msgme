@@ -10,7 +10,6 @@ http = require('http')
 urlParser = require('url')
 path = require('path')
 qs = require('querystring')
-jstoxml = require('jstoxml')
 i = require('util').inspect
 
 module.exports = (token, url, ver) ->

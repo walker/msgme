@@ -7,7 +7,6 @@
     { "name": "Walker Hamilton", "email": "walker@revolutionmessaging.com" }
   ],
   "dependencies": {
-    "jstoxml": ">= 1.5.2 < 2.0.0",
     "libxmljs": ">= 1.5.2 < 2.0.0",
   },
   "devDependencies": {

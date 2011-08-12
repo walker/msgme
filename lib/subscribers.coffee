@@ -17,9 +17,8 @@ exports = module.exports = (token, url, ver) ->
 	######
 	list_subscriptions = (msidn, callback, verOverride) ->
 		version = verOverride || null
-		params = {
+		params =
 			'msidn': msidn
-		}
 		
 		core.callApi(
 			'subscribers',
@@ -142,10 +141,9 @@ exports = module.exports = (token, url, ver) ->
 	######
 	get = (msidn, keyword_id, callback, verOverride) ->
 		version = verOverride || null
-		params = {
+		params =
 			'msidn': msidn
 			'keywordId': keyword_id
-		}
 		
 		core.callApi(
 			'subscribers',

@@ -17,10 +17,9 @@ exports = module.exports = (token, url, ver) ->
 	######
 	get = (account_id, shortcode, callback, past_24_hours, date_created, verOverride) ->
 		version = verOverride || null
-		params = {
+		params =
 			'accountId': account_id
 			'shortcode': shortcode
-		}
 		
 		if past_24_hours == true
 			method = 'get_new_keywords'
@@ -67,11 +66,10 @@ exports = module.exports = (token, url, ver) ->
 	available = (keyword_name, account_id, shortcode, callback, verOverride) ->
 		version = verOverride || null
 		
-		params = {
+		params =
 			'keyword_name': account_id
 			'accountId': account_id
 			'shortcode': shortcode
-		}
 		
 		core.callApi(
 			'keywords',
