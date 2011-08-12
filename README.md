@@ -1,16 +1,38 @@
-If you have non-expiring tokens (I thought these existed, but now I can't verify that):
+If you have a non-expiring token:
 
 ```
 msgme = require('msgme')(token, [api_url, [api_version]])
 ```
 
-
-Right now, the require is complicated for expiring tokens. (CoffeeScript)
-
-Here's the require for the beginning of the app:
+Here's the require for expiring tokens.
 
 ```
 msg_me = require('msgme')({acctname: 'acct_name_here', api_key:'api_key_here'}, [nonstandard_url, [api_version]])
+```
+
+Then make sure you wrap the calls to the MsgMe api with this function (CoffeeScript):
+
+```
+msg_me.get_token((returned_obj)->
+	if(returned_obj.code && returned_obj.code!='200')
+		res.send(returned_obj.reason)
+	else
+		msgme = returned_obj
+		
+```
+
+Then make sure you wrap the calls to the MsgMe api with this function (JavascriptScript):
+
+```
+msg_me.get_token(function(returned_obj) {
+	if(returned_obj.code && returned_obj.code!='200') {
+		console.log(returned_obj.reason);
+	} else {
+		msgme = returned_obj;
+		
+		// call API here
+		// msgme._api_module_._api_method_();
+	}
 ```
 
 The non-standard API URL would be for "Enterprise" users only wherein you have a custom API pointed at your msgme API account. It will be something like api.my_domain.com
