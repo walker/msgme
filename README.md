@@ -1,7 +1,7 @@
 If you have non-expiring tokens (I thought these existed, but now I can't verify that):
 
 ```
-msgme = require('msgme')([token])
+msgme = require('msgme')([token], [api_url], [api_version])
 ```
 
 
