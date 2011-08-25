@@ -158,12 +158,12 @@ module.exports = (token, url, ver) ->
 		######
 		# Call API
 		#
-		# @param {String} module The Bandcamp API module
+		# @param {String} module The Msgme API module
 		# @param {String} method Module method
 		# @param {Object} parameters Parameters to pass to the method
-		# @param {Function} callback Callback to handle Bandcamp response
+		# @param {Function} callback Callback to handle Msgme response
 		# @param {Integer} [ver] Version of the module you want to call. This is an override of defaults (latest).
-		# @return {Object} Bandcamp response
+		# @return {Object} Msgme response
 		######
 		callApi: (module, method, params, payload, callback, ver) ->
 			if(typeof callback isnt 'function')
