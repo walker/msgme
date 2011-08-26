@@ -1,3 +1,5 @@
+This module is incomplete. I'm currently only using the subscriber management portions in production, so the other modules are a little lacking. Please submit pull requests.
+
 If you have a non-expiring token:
 
 ```
